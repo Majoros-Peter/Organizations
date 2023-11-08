@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -27,17 +27,25 @@ namespace OrganizationWpf
         public MainWindow()
         {
             InitializeComponent();
-            ReadCsv();
-
-            cbOrszag.ItemsSource = organizations.Select(G => G.Country).OrderBy(G => G).Distinct().ToList();
-            cbEv.ItemsSource = organizations.Select(G => G.Founded).OrderBy(G => G).Distinct().ToList();
-            labTotalEmpl.Content = organizations.Sum(G => G.EmployeesNumber);
+            Init();
         }
 
-        private void ReadCsv()
+        private void Init()
         {
             organizations = File.ReadAllLines("organizations-100000.csv").Skip(1).Select(G => new Organization(G)).ToList();
             dgAdatok.ItemsSource = organizations;
+
+            var temp = organizations.Select(G => G.Country).OrderBy(G => G).Distinct().ToList();
+            temp.Insert(0, "Összes");
+            cbOrszag.ItemsSource = temp;
+            cbOrszag.SelectedIndex = 0;
+
+            temp = organizations.Select(G => G.Founded.ToString()).OrderBy(G => G).Distinct().ToList();
+            temp.Insert(0, "Összes");
+            cbEv.ItemsSource = temp;
+            cbEv.SelectedIndex = 0;
+
+            labTotalEmpl.Content = organizations.Sum(G => G.EmployeesNumber);
         }
 
         private void dgAdatok_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -60,12 +68,12 @@ namespace OrganizationWpf
 
         private void Filter(object? _orszag, object? _ev)
         {
-            string orszag = (_orszag ?? "").ToString();
-            int ev = Convert.ToInt32(_ev);
+            string orszag = (_orszag ?? "Összes").ToString();
+            string ev = (_ev?? "Összes").ToString();
 
             dgAdatok.ItemsSource = organizations
-                .Where(G => ev==0 || G.Founded==ev)
-                .Where(G => orszag=="" || G.Country==orszag)
+                .Where(G => ev=="Összes" || G.Founded.ToString()==ev)
+                .Where(G => orszag=="Összes" || G.Country==orszag)
                 .ToList();
         }
     }
